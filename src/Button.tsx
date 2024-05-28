@@ -4,13 +4,14 @@ export type ButtonProps = {
     title: string
     onClickHandler?: () => void
     isDisabled?:boolean
+    classes?:string
 
 
 }
-export const Button:React.FC<ButtonProps> = ({title,onClickHandler,isDisabled}) => {
+export const Button:React.FC<ButtonProps> = ({title,onClickHandler,isDisabled,classes}) => {
 
     return (
-        <button disabled={isDisabled} onClick={onClickHandler}>{title}</button>
+        <button className={classes} disabled={isDisabled} onClick={onClickHandler}>{title}</button>
     );
 };
 

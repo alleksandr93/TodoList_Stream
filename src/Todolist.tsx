@@ -1,29 +1,37 @@
 import React, {ChangeEvent, KeyboardEvent, useState} from 'react';
 import {Button} from './Button';
 import {FilterValuesType} from './App';
-import {log} from 'node:util';
-
+// Типизация
 type TodolistPropsType = {
     title: string
     tasks: Array<TaskPropsType>
     removeTask: (taskId: string) => void
     changeTodolistFilter: (filterValue: FilterValuesType) => void
     addTask: (title: string) => void
+    changeTaskStatus: (taskId: string, newIsDoneValue: boolean) => void
+    filterValue:string
 }
 export type TaskPropsType = {
     id: string
     title: string
     isDone: boolean
 }
-export const Todolist: React.FC<TodolistPropsType> = ({title, tasks, removeTask, changeTodolistFilter, addTask}) => {
+
+export const Todolist: React.FC<TodolistPropsType> = ({title, tasks, removeTask, changeTodolistFilter, addTask, changeTaskStatus,filterValue}) => {
+    // Input Стейт
     const [taskTitle, setTaskTitle] = useState('')
+    const [inputError,setInputError]=useState(false)
+    // Проходим Map
     const listItems: Array<JSX.Element> = tasks.map(el => {
         const onclickHeandler = () => {
             removeTask(el.id)
         }
+        const onChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
+            changeTaskStatus(el.id, event.currentTarget.checked)
+        }
         return (
-            <li key={el.id}>
-                <input type="checkbox" checked={el.isDone}/>
+            <li key={el.id} className={el.isDone ? 'task-done' : 'task'}>
+                <input type="checkbox" checked={el.isDone} onChange={onChangeHandler}/>
                 <span>{el.title}</span>
                 <Button onClickHandler={onclickHeandler} title={'X'}/>
             </li>
@@ -33,23 +41,26 @@ export const Todolist: React.FC<TodolistPropsType> = ({title, tasks, removeTask,
         ? <ul>{listItems}</ul>
         : <span>Tasks list is empty</span>
     const onChangeSetTaskTitle = (event: ChangeEvent<HTMLInputElement>) => {
+       inputError && setInputError(false)
         setTaskTitle(event.currentTarget.value)
     }
-    console.log(taskTitle.trim())
+    // Проверка на пробелы
     const addTaskHandler = () => {
         if (taskTitle.trim()) {
             addTask(taskTitle)
         } else {
-            alert('У тебя одни пробелы')
+            setInputError(true)
         }
         setTaskTitle('')
     }
+    // Запуск кнопочки
     const addTaskKeyDownHandler = (event: KeyboardEvent<HTMLInputElement>) => {
+
         if (event.key === 'Enter') {
             if (taskTitle.trim()) {
                 addTask(taskTitle)
             } else {
-                alert('У тебя одни пробелы')
+                setInputError(true)
             }
             setTaskTitle('')
         }
@@ -58,14 +69,15 @@ export const Todolist: React.FC<TodolistPropsType> = ({title, tasks, removeTask,
         <div className={'todoList'}>
             <h3>{title}</h3>
             <div>
-                <input onKeyDown={addTaskKeyDownHandler} value={taskTitle} onChange={onChangeSetTaskTitle}/>
-                <Button isDisabled={!taskTitle} title={'+'} onClickHandler={addTaskHandler}/>
+                <input onKeyDown={addTaskKeyDownHandler} value={taskTitle} onChange={onChangeSetTaskTitle} className={inputError ? 'input-error':''}/>
+                <Button isDisabled={!taskTitle.trim()} title={'+'} onClickHandler={addTaskHandler}/>
+                {inputError && <div style={{color:'red', fontWeight:'700'}}>Error: Title is required</div>}
             </div>
             {tasksList}
             <div>
-                <Button onClickHandler={() => changeTodolistFilter('All')} title={'All'}/>
-                <Button onClickHandler={() => changeTodolistFilter('Active')} title={'Active'}/>
-                <Button onClickHandler={() => changeTodolistFilter('Completed')} title={'Completed'}/>
+                <Button classes={filterValue==='All' ? 'btn-active':''} onClickHandler={() => changeTodolistFilter('All')} title={'All'}/>
+                <Button classes={filterValue==='Active' ? 'btn-active':''} onClickHandler={() => changeTodolistFilter('Active')} title={'Active'}/>
+                <Button classes={filterValue==='Completed' ? 'btn-active':''} onClickHandler={() => changeTodolistFilter('Completed')} title={'Completed'}/>
             </div>
         </div>
     );
